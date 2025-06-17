@@ -1,6 +1,7 @@
-package com.example.hexagonalorders.adapter.out.orderNumber;
+package com.example.hexagonalorders.infrastructure.out.orderNumber;
 
-import com.example.hexagonalorders.application.port.out.OrderNumberGenerator;
+import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
+import com.example.hexagonalorders.domain.port.out.OrderNumberGenerator;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Component
 public class UuidOrderNumberGenerator implements OrderNumberGenerator {
     @Override
-    public String generateOrderNumber() {
-        return UUID.randomUUID().toString();
+    public OrderNumber generate() {
+        return new OrderNumber(UUID.randomUUID().toString());
     }
 } 

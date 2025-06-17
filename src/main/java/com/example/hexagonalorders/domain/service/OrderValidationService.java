@@ -1,7 +1,6 @@
 package com.example.hexagonalorders.domain.service;
 
 import com.example.hexagonalorders.domain.model.Order;
-import org.springframework.stereotype.Service;
 
 /**
  * Domain service responsible for validating orders according to business rules.
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
  * - Operates purely on domain objects
  * - Is independent of infrastructure concerns
  */
-@Service
 public class OrderValidationService {
     
     /**
@@ -23,7 +21,7 @@ public class OrderValidationService {
      * - Minimum order value
      * - Maximum number of items
      * - Product availability
-     * - Validate customer credit limits
+     * - Customer credit limits
      * - etc.
      *
      * @param order The order to validate

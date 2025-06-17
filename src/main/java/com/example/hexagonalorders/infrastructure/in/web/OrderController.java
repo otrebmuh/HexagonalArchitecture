@@ -1,17 +1,15 @@
-package com.example.hexagonalorders.adapter.in.web;
+package com.example.hexagonalorders.infrastructure.in.web;
 
-import com.example.hexagonalorders.application.service.OrderService;
 import com.example.hexagonalorders.domain.model.Order;
-import com.example.hexagonalorders.application.port.in.OrderUseCase;
-import com.example.hexagonalorders.application.port.in.OrderControllerPort;
-import com.example.hexagonalorders.adapter.in.web.dto.OrderDto;
-import com.example.hexagonalorders.adapter.in.web.mapper.OrderMapper;
-import lombok.RequiredArgsConstructor;
+import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
+import com.example.hexagonalorders.domain.port.in.OrderControllerPort;
+import com.example.hexagonalorders.domain.port.in.OrderUseCase;
+import com.example.hexagonalorders.infrastructure.in.web.dto.OrderDto;
+import com.example.hexagonalorders.infrastructure.in.web.mapper.OrderMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Primary adapter implementing the web interface for order operations.
@@ -26,41 +24,38 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/orders")
-@RequiredArgsConstructor
 public class OrderController implements OrderControllerPort {
-    private final OrderService orderService;
+    private final OrderUseCase orderUseCase;
     private final OrderMapper orderMapper;
 
-    @Override
+    public OrderController(OrderUseCase orderUseCase, OrderMapper orderMapper) {
+        this.orderUseCase = orderUseCase;
+        this.orderMapper = orderMapper;
+    }
+
     @PostMapping
     public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
         Order order = orderMapper.toDomain(orderDto);
-        Order savedOrder = orderService.createOrder(order);
+        Order savedOrder = orderUseCase.createOrder(order);
         return ResponseEntity.ok(orderMapper.toDto(savedOrder));
     }
 
-    @Override
-    @GetMapping("/{id}")
-    public ResponseEntity<OrderDto> getOrder(@PathVariable Long id) {
-        return orderService.getOrder(id)
+    @GetMapping("/{orderNumber}")
+    public ResponseEntity<OrderDto> getOrder(@PathVariable String orderNumber) {
+        return orderUseCase.getOrder(new OrderNumber(orderNumber))
                 .map(orderMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Override
     @GetMapping
-    public ResponseEntity<List<OrderDto>> getAllOrders() {
-        List<OrderDto> orders = orderService.getAllOrders().stream()
-                .map(orderMapper::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(orders);
+    public ResponseEntity<List<Order>> getAllOrders() {
+        return ResponseEntity.ok(orderUseCase.getAllOrders());
     }
 
-    @Override
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
-        orderService.deleteOrder(id);
+    @DeleteMapping("/{orderNumber}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable String orderNumber) {
+        orderUseCase.deleteOrder(new OrderNumber(orderNumber));
         return ResponseEntity.noContent().build();
     }
 } 

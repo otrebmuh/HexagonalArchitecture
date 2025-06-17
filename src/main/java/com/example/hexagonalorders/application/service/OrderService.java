@@ -1,10 +1,10 @@
 package com.example.hexagonalorders.application.service;
 
-import com.example.hexagonalorders.application.port.in.OrderUseCase;
-import com.example.hexagonalorders.application.port.out.OrderNumberGenerator;
-import com.example.hexagonalorders.application.port.out.OrderRepository;
 import com.example.hexagonalorders.domain.model.Order;
 import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
+import com.example.hexagonalorders.domain.port.in.OrderUseCase;
+import com.example.hexagonalorders.domain.port.out.OrderNumberGenerator;
+import com.example.hexagonalorders.domain.port.out.OrderRepository;
 import com.example.hexagonalorders.domain.service.OrderValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +15,10 @@ import java.util.Optional;
 /**
  * Application service implementing the order-related use cases.
  * This class orchestrates domain logic and coordinates with output ports.
+ * It is part of the application layer and is responsible for:
+ * - Implementing use cases defined by the domain
+ * - Coordinating between domain objects and services
+ * - Managing transactions and use case flow
  */
 @Service
 @RequiredArgsConstructor
@@ -28,13 +32,20 @@ public class OrderService implements OrderUseCase {
         // Validate the order using the domain service
         orderValidationService.validateOrder(order);
         
-        order.setOrderNumber(new OrderNumber(orderNumberGenerator.generateOrderNumber()));
-        return orderRepository.save(order);
+        OrderNumber orderNumber = orderNumberGenerator.generate();
+        Order orderWithNumber = new Order(
+            orderNumber,
+            order.customerName(),
+            order.orderDate(),
+            order.items(),
+            order.status()
+        );
+        return orderRepository.save(orderWithNumber);
     }
 
     @Override
-    public Optional<Order> getOrder(Long id) {
-        return orderRepository.findById(id);
+    public Optional<Order> getOrder(OrderNumber orderNumber) {
+        return orderRepository.findByOrderNumber(orderNumber);
     }
 
     @Override
@@ -43,7 +54,7 @@ public class OrderService implements OrderUseCase {
     }
 
     @Override
-    public void deleteOrder(Long id) {
-        orderRepository.deleteById(id);
+    public void deleteOrder(OrderNumber orderNumber) {
+        orderRepository.deleteByOrderNumber(orderNumber);
     }
 } 
