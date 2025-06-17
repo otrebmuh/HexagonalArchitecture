@@ -10,9 +10,9 @@ src/main/java/com/example/hexagonalorders/
 │   └── model/                # Domain Entities
 │       ├── Order.java
 │       └── OrderItem.java
-├── port/                 # Domain Ports
+├── port/                 # Domain Ports (Business Logic Interfaces)
 │   ├── in/             # Input Ports (Use Cases)
-│   │   └── OrderControllerPort.java
+│   │   └── OrderUseCase.java
 │   └── out/            # Output Ports (Repositories, Services)
 │       ├── OrderRepository.java
 │       └── OrderNumberGenerator.java
@@ -85,6 +85,11 @@ This project implements Hexagonal Architecture (Ports and Adapters) which provid
 3. **Testability**: Each layer can be tested independently
 4. **Flexibility**: External dependencies can be easily swapped (e.g., database, UI)
 5. **Maintainability**: Changes in one layer don't affect others
+
+## Notes on Architecture
+- **Domain Ports** (`port/in` and `port/out`) are only for business logic and persistence/service abstractions, not for web or infrastructure concerns.
+- **OrderController** is implemented directly in the infrastructure layer as a REST adapter, not as a domain port.
+- This structure keeps the domain layer free from any dependencies on frameworks or delivery mechanisms.
 
 ## Contributing
 1. Fork the repository
