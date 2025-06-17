@@ -2,6 +2,9 @@ package com.example.hexagonalorders.adapter.in.web.mapper;
 
 import com.example.hexagonalorders.domain.model.Order;
 import com.example.hexagonalorders.domain.model.OrderItem;
+import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
+import com.example.hexagonalorders.domain.model.valueobject.ProductNumber;
+import com.example.hexagonalorders.domain.model.valueobject.Quantity;
 import com.example.hexagonalorders.adapter.in.web.dto.OrderDto;
 import com.example.hexagonalorders.adapter.in.web.dto.OrderItemDto;
 import org.springframework.stereotype.Component;
@@ -24,7 +27,7 @@ public class OrderMapper {
         
         OrderDto dto = new OrderDto();
         dto.setId(order.getId());
-        dto.setOrderNumber(order.getOrderNumber());
+        dto.setOrderNumber(order.getOrderNumber().value());
         dto.setCreationDate(order.getCreationDate());
         dto.setItems(toItemDtos(order.getItems()));
         return dto;
@@ -37,15 +40,15 @@ public class OrderMapper {
         
         Order order = new Order();
         order.setId(dto.getId());
-        order.setOrderNumber(dto.getOrderNumber());
+        order.setOrderNumber(new OrderNumber(dto.getOrderNumber()));
         order.setCreationDate(dto.getCreationDate());
         
         if (dto.getItems() != null) {
             dto.getItems().forEach(itemDto -> {
                 OrderItem item = new OrderItem();
                 item.setId(itemDto.getId());
-                item.setProductNumber(itemDto.getProductNumber());
-                item.setQuantity(itemDto.getQuantity());
+                item.setProductNumber(new ProductNumber(itemDto.getProductNumber()));
+                item.setQuantity(new Quantity(itemDto.getQuantity()));
                 order.addItem(item);
             });
         }
@@ -70,8 +73,8 @@ public class OrderMapper {
         
         OrderItemDto dto = new OrderItemDto();
         dto.setId(item.getId());
-        dto.setProductNumber(item.getProductNumber());
-        dto.setQuantity(item.getQuantity());
+        dto.setProductNumber(item.getProductNumber().value());
+        dto.setQuantity(item.getQuantity().value());
         return dto;
     }
 } 

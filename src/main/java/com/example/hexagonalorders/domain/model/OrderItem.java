@@ -1,5 +1,7 @@
 package com.example.hexagonalorders.domain.model;
 
+import com.example.hexagonalorders.domain.model.valueobject.ProductNumber;
+import com.example.hexagonalorders.domain.model.valueobject.Quantity;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,13 +12,13 @@ import lombok.Setter;
  * 
  * An OrderItem consists of:
  * - A unique identifier
- * - A product number
- * - A quantity
+ * - A product number (as a value object)
+ * - A quantity (as a value object)
  */
 @Getter
 @Setter
 public class OrderItem {
     private Long id;
-    private String productNumber;
-    private Integer quantity;
+    private ProductNumber productNumber;
+    private Quantity quantity;
 } 

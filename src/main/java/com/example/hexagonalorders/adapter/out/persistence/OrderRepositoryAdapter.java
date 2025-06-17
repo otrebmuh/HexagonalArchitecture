@@ -2,6 +2,9 @@ package com.example.hexagonalorders.adapter.out.persistence;
 
 import com.example.hexagonalorders.domain.model.Order;
 import com.example.hexagonalorders.domain.model.OrderItem;
+import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
+import com.example.hexagonalorders.domain.model.valueobject.ProductNumber;
+import com.example.hexagonalorders.domain.model.valueobject.Quantity;
 import com.example.hexagonalorders.application.port.out.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -53,15 +56,15 @@ public class OrderRepositoryAdapter implements OrderRepository {
     private OrderJpaEntity toJpaEntity(Order order) {
         OrderJpaEntity jpaEntity = new OrderJpaEntity();
         jpaEntity.setId(order.getId());
-        jpaEntity.setOrderNumber(order.getOrderNumber());
+        jpaEntity.setOrderNumber(order.getOrderNumber().value());
         jpaEntity.setCreationDate(order.getCreationDate());
         
         List<OrderItemJpaEntity> jpaItems = order.getItems().stream()
                 .map(item -> {
                     OrderItemJpaEntity jpaItem = new OrderItemJpaEntity();
                     jpaItem.setId(item.getId());
-                    jpaItem.setProductNumber(item.getProductNumber());
-                    jpaItem.setQuantity(item.getQuantity());
+                    jpaItem.setProductNumber(item.getProductNumber().value());
+                    jpaItem.setQuantity(item.getQuantity().value());
                     jpaItem.setOrder(jpaEntity);
                     return jpaItem;
                 })
@@ -74,15 +77,15 @@ public class OrderRepositoryAdapter implements OrderRepository {
     private Order toDomainEntity(OrderJpaEntity jpaEntity) {
         Order order = new Order();
         order.setId(jpaEntity.getId());
-        order.setOrderNumber(jpaEntity.getOrderNumber());
+        order.setOrderNumber(new OrderNumber(jpaEntity.getOrderNumber()));
         order.setCreationDate(jpaEntity.getCreationDate());
         
         List<OrderItem> domainItems = jpaEntity.getItems().stream()
                 .map(jpaItem -> {
                     OrderItem item = new OrderItem();
                     item.setId(jpaItem.getId());
-                    item.setProductNumber(jpaItem.getProductNumber());
-                    item.setQuantity(jpaItem.getQuantity());
+                    item.setProductNumber(new ProductNumber(jpaItem.getProductNumber()));
+                    item.setQuantity(new Quantity(jpaItem.getQuantity()));
                     return item;
                 })
                 .collect(Collectors.toList());

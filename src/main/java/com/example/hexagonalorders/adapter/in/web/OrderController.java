@@ -3,6 +3,7 @@ package com.example.hexagonalorders.adapter.in.web;
 import com.example.hexagonalorders.application.service.OrderService;
 import com.example.hexagonalorders.domain.model.Order;
 import com.example.hexagonalorders.application.port.in.OrderUseCase;
+import com.example.hexagonalorders.application.port.in.OrderControllerPort;
 import com.example.hexagonalorders.adapter.in.web.dto.OrderDto;
 import com.example.hexagonalorders.adapter.in.web.mapper.OrderMapper;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,11 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
-public class OrderController {
+public class OrderController implements OrderControllerPort {
     private final OrderService orderService;
     private final OrderMapper orderMapper;
 
+    @Override
     @PostMapping
     public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
         Order order = orderMapper.toDomain(orderDto);
@@ -37,6 +39,7 @@ public class OrderController {
         return ResponseEntity.ok(orderMapper.toDto(savedOrder));
     }
 
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<OrderDto> getOrder(@PathVariable Long id) {
         return orderService.getOrder(id)
@@ -45,6 +48,7 @@ public class OrderController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Override
     @GetMapping
     public ResponseEntity<List<OrderDto>> getAllOrders() {
         List<OrderDto> orders = orderService.getAllOrders().stream()
@@ -53,6 +57,7 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
+    @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);
