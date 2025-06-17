@@ -10,33 +10,41 @@ src/main/java/com/example/hexagonalorders/
 │   └── model/                # Domain Entities
 │       ├── Order.java
 │       └── OrderItem.java
-├── application/              # Application Layer (Use Cases & Ports)
-│   ├── port/                # Ports (Interfaces)
-│   │   ├── in/             # Input Ports (Use Cases)
-│   │   │   └── OrderUseCase.java
-│   │   └── out/            # Output Ports (Repositories, Services)
-│   │       ├── OrderRepository.java
-│   │       └── OrderNumberGenerator.java
+├── port/                 # Domain Ports
+│   ├── in/             # Input Ports (Use Cases)
+│   │   └── OrderControllerPort.java
+│   └── out/            # Output Ports (Repositories, Services)
+│       ├── OrderRepository.java
+│       └── OrderNumberGenerator.java
+└── service/            # Domain Services
+    └── OrderValidationService.java
+├── application/              # Application Layer (Use Cases)
 │   └── service/            # Application Services
 │       └── OrderService.java
-├── adapter/                 # Adapter Layer (Infrastructure)
-│   ├── in/                 # Input Adapters (Primary/Driving)
-│   │   └── web/           # Web Adapters
-│   │       ├── OrderController.java
-│   │       ├── dto/       # Data Transfer Objects
-│   │       │   ├── OrderDto.java
-│   │       │   └── OrderItemDto.java
-│   │       └── mapper/    # DTO Mappers
-│   │           └── OrderMapper.java
-│   └── out/               # Output Adapters (Secondary/Driven)
-│       ├── persistence/   # Persistence Adapters
-│       │   ├── OrderJpaEntity.java
-│       │   ├── OrderItemJpaEntity.java
-│       │   ├── JpaOrderRepository.java
-│       │   └── OrderRepositoryAdapter.java
-│       └── orderNumber/   # Order Number Generation Adapters
-│           └── UuidOrderNumberGenerator.java
-└── HexagonalOrdersApplication.java
+└── infrastructure/          # Infrastructure Layer
+    ├── config/             # Configuration
+    │   └── OrderConfiguration.java
+    ├── in/                 # Input Adapters (Primary/Driving)
+    │   └── web/           # Web Adapters
+    │       ├── OrderController.java
+    │       ├── dto/       # Data Transfer Objects
+    │       │   ├── OrderDto.java
+    │       │   └── OrderItemDto.java
+    │       └── mapper/    # DTO Mappers
+    │           └── OrderMapper.java
+    └── out/               # Output Adapters (Secondary/Driven)
+        ├── persistence/   # Persistence Adapters
+        │   ├── entity/    # JPA Entities
+        │   │   ├── OrderJpaEntity.java
+        │   │   ├── OrderItemJpaEntity.java
+        │   │   └── OrderStatus.java
+        │   ├── repository/ # JPA Repositories
+        │   │   ├── OrderJpaRepository.java
+        │   │   └── OrderRepositoryAdapter.java
+        │   └── mapper/    # Entity Mappers
+        │       └── OrderMapper.java
+        └── orderNumber/   # Order Number Generation Adapters
+            └── UuidOrderNumberGenerator.java
 ```
 
 ## Technologies Used
@@ -60,9 +68,8 @@ src/main/java/com/example/hexagonalorders/
 
 ## API Endpoints
 - `POST /api/orders` - Create a new order
-- `GET /api/orders` - Get all orders
-- `GET /api/orders/{id}` - Get order by ID
-- `DELETE /api/orders/{id}` - Delete an order
+- `GET /api/orders/{orderNumber}` - Get order by order number
+- `DELETE /api/orders/{orderNumber}` - Delete an order
 
 ## H2 Database Console
 The application uses H2 as an in-memory database. You can access the H2 console at:
