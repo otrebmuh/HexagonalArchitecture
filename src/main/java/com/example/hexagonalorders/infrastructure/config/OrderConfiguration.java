@@ -4,6 +4,7 @@ import com.example.hexagonalorders.application.service.OrderService;
 import com.example.hexagonalorders.domain.service.OrderValidationService;
 import com.example.hexagonalorders.domain.port.out.OrderNumberGenerator;
 import com.example.hexagonalorders.domain.port.out.OrderRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,8 +22,9 @@ public class OrderConfiguration {
     public OrderService orderService(
             OrderRepository orderRepository,
             OrderNumberGenerator orderNumberGenerator,
-            OrderValidationService orderValidationService) {
-        return new OrderService(orderRepository, orderNumberGenerator, orderValidationService);
+            OrderValidationService orderValidationService,
+            ApplicationEventPublisher eventPublisher) {
+        return new OrderService(orderRepository, orderNumberGenerator, orderValidationService, eventPublisher);
     }
 
     @Bean

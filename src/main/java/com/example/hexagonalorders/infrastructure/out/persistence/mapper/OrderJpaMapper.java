@@ -13,16 +13,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class OrderMapper {
+public class OrderJpaMapper {
     
     public OrderJpaEntity toJpaEntity(Order order) {
         OrderJpaEntity jpaEntity = new OrderJpaEntity();
-        jpaEntity.setOrderNumber(order.orderNumber().value());
-        jpaEntity.setCustomerName(order.customerName());
-        jpaEntity.setOrderDate(order.orderDate());
-        jpaEntity.setStatus(toJpaOrderStatus(order.status()));
+        jpaEntity.setOrderNumber(order.getOrderNumber().value());
+        jpaEntity.setCustomerId(order.getCustomerId());
+        jpaEntity.setOrderDate(order.getOrderDate());
+        jpaEntity.setStatus(toJpaOrderStatus(order.getStatus()));
         
-        List<OrderItemJpaEntity> items = order.items().stream()
+        List<OrderItemJpaEntity> items = order.getItems().stream()
                 .map(this::toJpaEntity)
                 .collect(Collectors.toList());
         jpaEntity.setItems(items);
@@ -32,9 +32,9 @@ public class OrderMapper {
     
     private OrderItemJpaEntity toJpaEntity(OrderItem item) {
         OrderItemJpaEntity jpaEntity = new OrderItemJpaEntity();
-        jpaEntity.setProductNumber(item.productNumber().value());
-        jpaEntity.setQuantity(item.quantity().value());
-        jpaEntity.setUnitPrice(item.unitPrice());
+        jpaEntity.setProductNumber(item.getProductNumber().value());
+        jpaEntity.setQuantity(item.getQuantity().value());
+        jpaEntity.setUnitPrice(item.getUnitPrice());
         return jpaEntity;
     }
     
@@ -45,7 +45,7 @@ public class OrderMapper {
         
         return new Order(
             new OrderNumber(jpaEntity.getOrderNumber()),
-            jpaEntity.getCustomerName(),
+            jpaEntity.getCustomerId(),
             jpaEntity.getOrderDate(),
             items,
             toDomainOrderStatus(jpaEntity.getStatus())

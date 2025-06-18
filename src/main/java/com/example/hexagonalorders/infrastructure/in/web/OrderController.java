@@ -5,6 +5,10 @@ import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
 import com.example.hexagonalorders.domain.port.in.OrderUseCase;
 import com.example.hexagonalorders.infrastructure.in.web.dto.OrderDto;
 import com.example.hexagonalorders.infrastructure.in.web.mapper.OrderMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +21,17 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
+@Tag(name = "Orders", description = "Order management API")
 public class OrderController {
 
     private final OrderUseCase orderUseCase;
     private final OrderMapper orderMapper;
 
+    @Operation(summary = "Create a new order", description = "Creates a new order and returns the created order.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Order created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input")
+    })
     @PostMapping
     public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
         Order order = orderMapper.toDomain(orderDto);
@@ -29,6 +39,11 @@ public class OrderController {
         return ResponseEntity.ok(orderMapper.toDto(savedOrder));
     }
 
+    @Operation(summary = "Get an order by order number", description = "Retrieves an order by its order number.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Order found"),
+        @ApiResponse(responseCode = "404", description = "Order not found")
+    })
     @GetMapping("/{orderNumber}")
     public ResponseEntity<OrderDto> getOrder(@PathVariable String orderNumber) {
         return orderUseCase.getOrder(new OrderNumber(orderNumber))
@@ -37,6 +52,10 @@ public class OrderController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Delete an order by order number", description = "Deletes an order by its order number.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Order deleted successfully")
+    })
     @DeleteMapping("/{orderNumber}")
     public ResponseEntity<Void> deleteOrder(@PathVariable String orderNumber) {
         orderUseCase.deleteOrder(new OrderNumber(orderNumber));

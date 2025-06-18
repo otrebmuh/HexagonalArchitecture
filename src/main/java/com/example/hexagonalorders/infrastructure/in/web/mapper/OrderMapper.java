@@ -26,11 +26,11 @@ public class OrderMapper {
             return null;
         }
         return new OrderDto(
-            order.orderNumber().value(),
-            order.customerName(),
-            order.orderDate(),
-            toItemDtos(order.items()),
-            order.status().name()
+            order.getOrderNumber().value(),
+            order.getCustomerId(),
+            order.getOrderDate(),
+            toItemDtos(order.getItems()),
+            order.getStatus().name()
         );
     }
     
@@ -40,7 +40,7 @@ public class OrderMapper {
         }
         return new Order(
             new OrderNumber(dto.getOrderNumber()),
-            dto.getCustomerName(),
+            dto.getCustomerId(),
             dto.getOrderDate(),
             toDomainItems(dto.getItems()),
             OrderStatus.valueOf(dto.getStatus())
@@ -61,9 +61,9 @@ public class OrderMapper {
             return null;
         }
         return new OrderItemDto(
-            item.productNumber().value(),
-            item.quantity().value(),
-            item.unitPrice()
+            item.getProductNumber().value(),
+            item.getQuantity().value(),
+            item.getUnitPrice()
         );
     }
     

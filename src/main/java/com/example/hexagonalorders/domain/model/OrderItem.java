@@ -3,6 +3,7 @@ package com.example.hexagonalorders.domain.model;
 import com.example.hexagonalorders.domain.model.valueobject.ProductNumber;
 import com.example.hexagonalorders.domain.model.valueobject.Quantity;
 import java.math.BigDecimal;
+import java.util.Objects;
 
 /**
  * Core domain entity representing an OrderItem in the system.
@@ -14,12 +15,12 @@ import java.math.BigDecimal;
  * - A product number (as a value object)
  * - A quantity (as a value object)
  */
-public record OrderItem(
-    ProductNumber productNumber,
-    Quantity quantity,
-    BigDecimal unitPrice
-) {
-    public OrderItem {
+public class OrderItem {
+    private final ProductNumber productNumber;
+    private final Quantity quantity;
+    private final BigDecimal unitPrice;
+
+    public OrderItem(ProductNumber productNumber, Quantity quantity, BigDecimal unitPrice) {
         if (productNumber == null) {
             throw new IllegalArgumentException("Product number cannot be null");
         }
@@ -29,5 +30,22 @@ public record OrderItem(
         if (unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Unit price must be greater than zero");
         }
+        this.productNumber = productNumber;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
     }
+
+    public ProductNumber getProductNumber() {
+        return productNumber;
+    }
+
+    public Quantity getQuantity() {
+        return quantity;
+    }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    // equals, hashCode, and toString can be added as needed
 } 

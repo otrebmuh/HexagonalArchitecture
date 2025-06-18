@@ -7,7 +7,7 @@ import com.example.hexagonalorders.domain.port.out.OrderNumberGenerator;
 import com.example.hexagonalorders.domain.port.out.OrderRepository;
 import com.example.hexagonalorders.domain.service.OrderValidationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,12 +20,12 @@ import java.util.Optional;
  * - Coordinating between domain objects and services
  * - Managing transactions and use case flow
  */
-@Service
 @RequiredArgsConstructor
 public class OrderService implements OrderUseCase {
     private final OrderRepository orderRepository;
     private final OrderNumberGenerator orderNumberGenerator;
     private final OrderValidationService orderValidationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Order createOrder(Order order) {
@@ -35,12 +35,18 @@ public class OrderService implements OrderUseCase {
         OrderNumber orderNumber = orderNumberGenerator.generate();
         Order orderWithNumber = new Order(
             orderNumber,
-            order.customerName(),
-            order.orderDate(),
-            order.items(),
-            order.status()
+            order.getCustomerId(),
+            order.getOrderDate(),
+            order.getItems(),
+            order.getStatus()
         );
-        return orderRepository.save(orderWithNumber);
+        Order savedOrder = orderRepository.save(orderWithNumber);
+
+        // Publish domain events
+        savedOrder.getDomainEvents().forEach(eventPublisher::publishEvent);
+        savedOrder.clearDomainEvents();
+
+        return savedOrder;
     }
 
     @Override

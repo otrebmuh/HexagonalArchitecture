@@ -16,7 +16,7 @@ public class OrderJpaEntity {
     private String orderNumber;
     
     @Column(nullable = false)
-    private String customerName;
+    private String customerId;
     
     @Column(nullable = false)
     private LocalDateTime orderDate;
@@ -44,12 +44,12 @@ public class OrderJpaEntity {
         this.orderNumber = orderNumber;
     }
 
-    public String getCustomerName() {
-        return customerName;
+    public String getCustomerId() {
+        return customerId;
     }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
     }
 
     public LocalDateTime getOrderDate() {
