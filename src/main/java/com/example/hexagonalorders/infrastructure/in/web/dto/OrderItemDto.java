@@ -31,6 +31,14 @@ public class OrderItemDto {
         this.unitPrice = unitPrice;
     }
 
+    public String getProductNumber() {
+        return productNumber;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
     public BigDecimal getUnitPrice() {
         return unitPrice;
     }

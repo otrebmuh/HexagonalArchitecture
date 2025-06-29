@@ -40,12 +40,22 @@ public class OrderDto {
         this.status = status;
     }
 
+    public String getOrderNumber() {
+        return orderNumber;
+    }
+
     public String getCustomerId() {
         return customerId;
     }
+    
     public LocalDateTime getOrderDate() {
         return orderDate;
     }
+    
+    public List<OrderItemDto> getItems() {
+        return items;
+    }
+    
     public String getStatus() {
         return status;
     }
