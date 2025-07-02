@@ -17,24 +17,33 @@ public class OrderJpaMapper {
     
     public OrderJpaEntity toJpaEntity(Order order) {
         OrderJpaEntity jpaEntity = new OrderJpaEntity();
-        jpaEntity.setOrderNumber(order.getOrderNumber().value());
+        
+        // Handle null orderNumber for new orders
+        if (order.getOrderNumber() != null) {
+            jpaEntity.setOrderNumber(order.getOrderNumber().value());
+        } else {
+            // For new orders, we'll set a placeholder that will be updated later
+            jpaEntity.setOrderNumber("TEMP-" + System.currentTimeMillis());
+        }
+        
         jpaEntity.setCustomerId(order.getCustomerId());
         jpaEntity.setOrderDate(order.getOrderDate());
         jpaEntity.setStatus(toJpaOrderStatus(order.getStatus()));
         
         List<OrderItemJpaEntity> items = order.getItems().stream()
-                .map(this::toJpaEntity)
+                .map(item -> toJpaEntity(item, jpaEntity))
                 .collect(Collectors.toList());
         jpaEntity.setItems(items);
         
         return jpaEntity;
     }
     
-    private OrderItemJpaEntity toJpaEntity(OrderItem item) {
+    private OrderItemJpaEntity toJpaEntity(OrderItem item, OrderJpaEntity order) {
         OrderItemJpaEntity jpaEntity = new OrderItemJpaEntity();
         jpaEntity.setProductNumber(item.getProductNumber().value());
         jpaEntity.setQuantity(item.getQuantity().value());
         jpaEntity.setUnitPrice(item.getUnitPrice());
+        jpaEntity.setOrder(order); // Set the order reference
         return jpaEntity;
     }
     

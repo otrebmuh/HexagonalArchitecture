@@ -38,13 +38,24 @@ public class OrderMapper {
         if (dto == null) {
             return null;
         }
-        return new Order(
-            new OrderNumber(dto.getOrderNumber()),
-            dto.getCustomerId(),
-            dto.getOrderDate(),
-            toDomainItems(dto.getItems()),
-            OrderStatus.valueOf(dto.getStatus())
-        );
+        
+        // For new orders, orderNumber will be null or empty
+        if (dto.getOrderNumber() == null || dto.getOrderNumber().isEmpty()) {
+            return new Order(
+                dto.getCustomerId(),
+                dto.getOrderDate(),
+                toDomainItems(dto.getItems()),
+                OrderStatus.valueOf(dto.getStatus())
+            );
+        } else {
+            return new Order(
+                new OrderNumber(dto.getOrderNumber()),
+                dto.getCustomerId(),
+                dto.getOrderDate(),
+                toDomainItems(dto.getItems()),
+                OrderStatus.valueOf(dto.getStatus())
+            );
+        }
     }
     
     private List<OrderItemDto> toItemDtos(List<OrderItem> items) {
