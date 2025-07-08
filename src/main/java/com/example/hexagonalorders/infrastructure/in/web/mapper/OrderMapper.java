@@ -6,12 +6,14 @@ import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
 import com.example.hexagonalorders.domain.model.valueobject.ProductNumber;
 import com.example.hexagonalorders.domain.model.valueobject.Quantity;
 import com.example.hexagonalorders.domain.model.OrderStatus;
+import com.example.hexagonalorders.domain.model.valueobject.ShippingAddress;
 import com.example.hexagonalorders.infrastructure.in.web.dto.OrderDto;
 import com.example.hexagonalorders.infrastructure.in.web.dto.OrderItemDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 /**
  * Mapper class responsible for converting between domain entities and DTOs.
@@ -25,26 +27,40 @@ public class OrderMapper {
         if (order == null) {
             return null;
         }
-        return new OrderDto(
-            order.getOrderNumber().value(),
-            order.getCustomerId(),
-            order.getOrderDate(),
-            toItemDtos(order.getItems()),
-            order.getStatus().name()
-        );
+        OrderDto dto = new OrderDto();
+        dto.setOrderNumber(order.getOrderNumber().value());
+        dto.setCustomerId(order.getCustomerId());
+        dto.setOrderDate(order.getOrderDate());
+        dto.setItems(toItemDtos(order.getItems()));
+        dto.setStatus(order.getStatus().name());
+        ShippingAddress shippingAddress = order.getShippingAddress();
+        if (shippingAddress != null) {
+            dto.setStreet(shippingAddress.getStreet());
+            dto.setCity(shippingAddress.getCity());
+            dto.setState(shippingAddress.getState());
+            dto.setPostalCode(shippingAddress.getPostalCode());
+            dto.setCountry(shippingAddress.getCountry());
+        }
+        return dto;
     }
     
     public Order toDomain(OrderDto dto) {
         if (dto == null) {
             return null;
         }
-        
-        // For new orders, orderNumber will be null or empty
+        ShippingAddress shippingAddress = new ShippingAddress(
+            dto.getStreet(),
+            dto.getCity(),
+            dto.getState(),
+            dto.getPostalCode(),
+            dto.getCountry()
+        );
         if (dto.getOrderNumber() == null || dto.getOrderNumber().isEmpty()) {
             return new Order(
                 dto.getCustomerId(),
                 dto.getOrderDate(),
                 toDomainItems(dto.getItems()),
+                shippingAddress,
                 OrderStatus.valueOf(dto.getStatus())
             );
         } else {
@@ -53,6 +69,7 @@ public class OrderMapper {
                 dto.getCustomerId(),
                 dto.getOrderDate(),
                 toDomainItems(dto.getItems()),
+                shippingAddress,
                 OrderStatus.valueOf(dto.getStatus())
             );
         }

@@ -30,6 +30,17 @@ public class OrderDto {
     @Schema(description = "Order status.", example = "CREATED", required = true)
     private String status;
 
+    @Schema(description = "Street address for shipping.", example = "123 Main St", required = true)
+    private String street;
+    @Schema(description = "City for shipping.", example = "Springfield", required = true)
+    private String city;
+    @Schema(description = "State or province for shipping.", example = "IL", required = true)
+    private String state;
+    @Schema(description = "Postal code for shipping.", example = "62704", required = true)
+    private String postalCode;
+    @Schema(description = "Country for shipping.", example = "USA", required = true)
+    private String country;
+
     public OrderDto() {}
 
     public OrderDto(String orderNumber, String customerId, LocalDateTime orderDate, List<OrderItemDto> items, String status) {
@@ -49,4 +60,15 @@ public class OrderDto {
     public String getStatus() {
         return status;
     }
+
+    public String getStreet() { return street; }
+    public void setStreet(String street) { this.street = street; }
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
+    public String getPostalCode() { return postalCode; }
+    public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
 } 

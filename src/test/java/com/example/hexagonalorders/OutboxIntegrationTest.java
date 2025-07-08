@@ -130,7 +130,11 @@ public class OutboxIntegrationTest {
         orderDto.setOrderDate(LocalDateTime.now());
         orderDto.setItems(Collections.singletonList(itemDto));
         orderDto.setStatus("PENDING");
-        
+        orderDto.setStreet("123 Main St");
+        orderDto.setCity("City");
+        orderDto.setState("State");
+        orderDto.setPostalCode("12345");
+        orderDto.setCountry("Country");
         return orderDto;
     }
     

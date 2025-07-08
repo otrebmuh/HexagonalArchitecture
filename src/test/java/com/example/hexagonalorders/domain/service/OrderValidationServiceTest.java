@@ -6,6 +6,7 @@ import com.example.hexagonalorders.domain.model.OrderStatus;
 import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
 import com.example.hexagonalorders.domain.model.valueobject.ProductNumber;
 import com.example.hexagonalorders.domain.model.valueobject.Quantity;
+import com.example.hexagonalorders.domain.model.valueobject.ShippingAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,25 +21,24 @@ class OrderValidationServiceTest {
 
     private OrderValidationService validationService;
     private Order validOrder;
+    private ShippingAddress validShippingAddress;
 
     @BeforeEach
     void setUp() {
         validationService = new OrderValidationService();
-        
+        validShippingAddress = new ShippingAddress("123 Main St", "City", "State", "12345", "Country");
         // Create a valid order for testing
         OrderNumber orderNumber = new OrderNumber("ORD-001");
         String customerId = "CUST-001";
         LocalDateTime orderDate = LocalDateTime.now();
         OrderStatus status = OrderStatus.PENDING;
-        
         List<OrderItem> items = new ArrayList<>();
         items.add(new OrderItem(
             new ProductNumber("PROD-001"),
             new Quantity(2),
             new BigDecimal("29.99")
         ));
-        
-        validOrder = new Order(orderNumber, customerId, orderDate, items, status);
+        validOrder = new Order(orderNumber, customerId, orderDate, items, validShippingAddress, status);
     }
 
     @Test
@@ -71,7 +71,7 @@ class OrderValidationServiceTest {
             new BigDecimal("29.99")
         ));
         
-        Order orderWithoutNumber = new Order(customerId, orderDate, items, status);
+        Order orderWithoutNumber = new Order(customerId, orderDate, items, validShippingAddress, status);
 
         // When & Then
         assertDoesNotThrow(() -> validationService.validateOrder(orderWithoutNumber));
@@ -97,7 +97,7 @@ class OrderValidationServiceTest {
             new BigDecimal("19.99")
         ));
         
-        Order orderWithMultipleItems = new Order(orderNumber, customerId, orderDate, items, status);
+        Order orderWithMultipleItems = new Order(orderNumber, customerId, orderDate, items, validShippingAddress, status);
 
         // When & Then
         assertDoesNotThrow(() -> validationService.validateOrder(orderWithMultipleItems));
@@ -119,7 +119,7 @@ class OrderValidationServiceTest {
 
         // Test all possible statuses
         for (OrderStatus status : OrderStatus.values()) {
-            Order orderWithStatus = new Order(orderNumber, customerId, orderDate, items, status);
+            Order orderWithStatus = new Order(orderNumber, customerId, orderDate, items, validShippingAddress, status);
             
             // When & Then
             assertDoesNotThrow(() -> validationService.validateOrder(orderWithStatus));
@@ -136,7 +136,7 @@ class OrderValidationServiceTest {
         
         List<OrderItem> emptyItems = new ArrayList<>();
         
-        Order orderWithEmptyItems = new Order(orderNumber, customerId, orderDate, emptyItems, status);
+        Order orderWithEmptyItems = new Order(orderNumber, customerId, orderDate, emptyItems, validShippingAddress, status);
 
         // When & Then
         assertDoesNotThrow(() -> validationService.validateOrder(orderWithEmptyItems));
@@ -157,7 +157,7 @@ class OrderValidationServiceTest {
             new BigDecimal("29.99")
         ));
         
-        Order orderWithComplexCustomerId = new Order(orderNumber, complexCustomerId, orderDate, items, status);
+        Order orderWithComplexCustomerId = new Order(orderNumber, complexCustomerId, orderDate, items, validShippingAddress, status);
 
         // When & Then
         assertDoesNotThrow(() -> validationService.validateOrder(orderWithComplexCustomerId));
@@ -178,7 +178,7 @@ class OrderValidationServiceTest {
             new BigDecimal("999999.99")
         ));
         
-        Order orderWithHighValueItem = new Order(orderNumber, customerId, orderDate, items, status);
+        Order orderWithHighValueItem = new Order(orderNumber, customerId, orderDate, items, validShippingAddress, status);
 
         // When & Then
         assertDoesNotThrow(() -> validationService.validateOrder(orderWithHighValueItem));
@@ -199,7 +199,7 @@ class OrderValidationServiceTest {
             new BigDecimal("0.01")
         ));
         
-        Order orderWithLowValueItem = new Order(orderNumber, customerId, orderDate, items, status);
+        Order orderWithLowValueItem = new Order(orderNumber, customerId, orderDate, items, validShippingAddress, status);
 
         // When & Then
         assertDoesNotThrow(() -> validationService.validateOrder(orderWithLowValueItem));

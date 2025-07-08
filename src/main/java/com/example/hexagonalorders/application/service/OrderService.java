@@ -47,6 +47,7 @@ public class OrderService implements OrderUseCase {
             order.getCustomerId(),
             order.getOrderDate(),
             order.getItems(),
+            order.getShippingAddress(),
             order.getStatus()
         );
         Order savedOrder = orderRepository.save(orderWithNumber);

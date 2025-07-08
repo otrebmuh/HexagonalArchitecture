@@ -10,6 +10,7 @@ import com.example.hexagonalorders.domain.model.OutboxMessage;
 import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
 import com.example.hexagonalorders.domain.model.valueobject.ProductNumber;
 import com.example.hexagonalorders.domain.model.valueobject.Quantity;
+import com.example.hexagonalorders.domain.model.valueobject.ShippingAddress;
 import com.example.hexagonalorders.domain.port.out.OrderNumberGenerator;
 import com.example.hexagonalorders.domain.port.out.OrderRepository;
 import com.example.hexagonalorders.domain.port.out.OutboxRepository;
@@ -139,14 +140,14 @@ public class OrderServiceWithOutboxTest {
             new OrderItem(new ProductNumber("PROD-001"), new Quantity(2), BigDecimal.valueOf(19.99))
         ));
         when(mockOrder.getStatus()).thenReturn(OrderStatus.PENDING);
-        
+        ShippingAddress shippingAddress = new ShippingAddress("123 Main St", "City", "State", "12345", "Country");
+        when(mockOrder.getShippingAddress()).thenReturn(shippingAddress);
         // Mock domain events
         List<DomainEvent> events = new ArrayList<>();
         if (orderNumber != null) {
-            events.add(new OrderCreatedEvent(1L, orderNumber));
+            events.add(new OrderCreatedEvent(1L, orderNumber, shippingAddress));
         }
         when(mockOrder.getDomainEvents()).thenReturn(events);
-        
         return mockOrder;
     }
     
@@ -161,16 +162,16 @@ public class OrderServiceWithOutboxTest {
             new OrderItem(new ProductNumber("PROD-002"), new Quantity(1), BigDecimal.valueOf(29.99))
         ));
         when(mockOrder.getStatus()).thenReturn(OrderStatus.PENDING);
-        
+        ShippingAddress shippingAddress = new ShippingAddress("123 Main St", "City", "State", "12345", "Country");
+        when(mockOrder.getShippingAddress()).thenReturn(shippingAddress);
         // Mock domain events
         List<DomainEvent> events = new ArrayList<>();
         if (orderNumber != null) {
-            events.add(new OrderCreatedEvent(1L, orderNumber));
+            events.add(new OrderCreatedEvent(1L, orderNumber, shippingAddress));
             events.add(new OrderItemAddedEvent(1L, 1L, new ProductNumber("PROD-001"), new Quantity(2)));
             events.add(new OrderItemAddedEvent(1L, 2L, new ProductNumber("PROD-002"), new Quantity(1)));
         }
         when(mockOrder.getDomainEvents()).thenReturn(events);
-        
         return mockOrder;
     }
 } 

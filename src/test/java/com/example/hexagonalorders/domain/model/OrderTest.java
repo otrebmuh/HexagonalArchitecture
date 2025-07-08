@@ -6,6 +6,7 @@ import com.example.hexagonalorders.domain.event.OrderItemAddedEvent;
 import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
 import com.example.hexagonalorders.domain.model.valueobject.ProductNumber;
 import com.example.hexagonalorders.domain.model.valueobject.Quantity;
+import com.example.hexagonalorders.domain.model.valueobject.ShippingAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +24,7 @@ class OrderTest {
     private LocalDateTime validOrderDate;
     private List<OrderItem> validItems;
     private OrderStatus validStatus;
+    private ShippingAddress validShippingAddress;
 
     @BeforeEach
     void setUp() {
@@ -37,12 +39,13 @@ class OrderTest {
             new Quantity(2),
             new BigDecimal("29.99")
         ));
+        validShippingAddress = new ShippingAddress("123 Main St", "City", "State", "12345", "Country");
     }
 
     @Test
     void shouldCreateOrderWithValidParameters() {
         // When
-        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validStatus);
+        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validShippingAddress, validStatus);
 
         // Then
         assertNotNull(order);
@@ -51,6 +54,7 @@ class OrderTest {
         assertEquals(validOrderDate, order.getOrderDate());
         assertEquals(validItems, order.getItems());
         assertEquals(validStatus, order.getStatus());
+        assertEquals(validShippingAddress, order.getShippingAddress());
         assertFalse(order.getDomainEvents().isEmpty());
         assertTrue(order.getDomainEvents().get(0) instanceof OrderCreatedEvent);
     }
@@ -58,7 +62,7 @@ class OrderTest {
     @Test
     void shouldCreateOrderWithoutOrderNumber() {
         // When
-        Order order = new Order(validCustomerId, validOrderDate, validItems, validStatus);
+        Order order = new Order(validCustomerId, validOrderDate, validItems, validShippingAddress, validStatus);
 
         // Then
         assertNotNull(order);
@@ -67,6 +71,7 @@ class OrderTest {
         assertEquals(validOrderDate, order.getOrderDate());
         assertEquals(validItems, order.getItems());
         assertEquals(validStatus, order.getStatus());
+        assertEquals(validShippingAddress, order.getShippingAddress());
         assertTrue(order.getDomainEvents().isEmpty());
     }
 
@@ -75,7 +80,7 @@ class OrderTest {
         // When & Then
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> new Order(null, validCustomerId, validOrderDate, validItems, validStatus)
+            () -> new Order(null, validCustomerId, validOrderDate, validItems, validShippingAddress, validStatus)
         );
         assertEquals("Order number cannot be null", exception.getMessage());
     }
@@ -85,7 +90,7 @@ class OrderTest {
         // When & Then
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> new Order(validOrderNumber, null, validOrderDate, validItems, validStatus)
+            () -> new Order(validOrderNumber, null, validOrderDate, validItems, validShippingAddress, validStatus)
         );
         assertEquals("Customer ID cannot be null or empty", exception.getMessage());
     }
@@ -95,7 +100,7 @@ class OrderTest {
         // When & Then
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> new Order(validOrderNumber, "", validOrderDate, validItems, validStatus)
+            () -> new Order(validOrderNumber, "", validOrderDate, validItems, validShippingAddress, validStatus)
         );
         assertEquals("Customer ID cannot be null or empty", exception.getMessage());
     }
@@ -105,7 +110,7 @@ class OrderTest {
         // When & Then
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> new Order(validOrderNumber, "   ", validOrderDate, validItems, validStatus)
+            () -> new Order(validOrderNumber, "   ", validOrderDate, validItems, validShippingAddress, validStatus)
         );
         assertEquals("Customer ID cannot be null or empty", exception.getMessage());
     }
@@ -115,7 +120,7 @@ class OrderTest {
         // When & Then
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> new Order(validOrderNumber, validCustomerId, null, validItems, validStatus)
+            () -> new Order(validOrderNumber, validCustomerId, null, validItems, validShippingAddress, validStatus)
         );
         assertEquals("Order date cannot be null", exception.getMessage());
     }
@@ -125,7 +130,7 @@ class OrderTest {
         // When & Then
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> new Order(validOrderNumber, validCustomerId, validOrderDate, null, validStatus)
+            () -> new Order(validOrderNumber, validCustomerId, validOrderDate, null, validShippingAddress, validStatus)
         );
         assertEquals("Items cannot be null", exception.getMessage());
     }
@@ -135,7 +140,7 @@ class OrderTest {
         // When & Then
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, null)
+            () -> new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validShippingAddress, null)
         );
         assertEquals("Status cannot be null", exception.getMessage());
     }
@@ -143,7 +148,7 @@ class OrderTest {
     @Test
     void shouldAddItemToOrder() {
         // Given
-        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validStatus);
+        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validShippingAddress, validStatus);
         OrderItem newItem = new OrderItem(
             new ProductNumber("PROD-002"),
             new Quantity(1),
@@ -171,7 +176,7 @@ class OrderTest {
     @Test
     void shouldThrowExceptionWhenAddingNullItem() {
         // Given
-        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validStatus);
+        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validShippingAddress, validStatus);
 
         // When & Then
         IllegalArgumentException exception = assertThrows(
@@ -184,7 +189,7 @@ class OrderTest {
     @Test
     void shouldRemoveItemFromOrder() {
         // Given
-        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validStatus);
+        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validShippingAddress, validStatus);
         OrderItem itemToRemove = validItems.get(0);
 
         // When
@@ -197,7 +202,7 @@ class OrderTest {
     @Test
     void shouldThrowExceptionWhenRemovingNullItem() {
         // Given
-        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validStatus);
+        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validShippingAddress, validStatus);
 
         // When & Then
         IllegalArgumentException exception = assertThrows(
@@ -210,7 +215,7 @@ class OrderTest {
     @Test
     void shouldClearDomainEvents() {
         // Given
-        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validStatus);
+        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validShippingAddress, validStatus);
         assertFalse(order.getDomainEvents().isEmpty());
 
         // When
@@ -223,11 +228,11 @@ class OrderTest {
     @Test
     void shouldReturnUnmodifiableListOfDomainEvents() {
         // Given
-        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validStatus);
+        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validShippingAddress, validStatus);
 
         // When & Then
         assertThrows(UnsupportedOperationException.class, () -> {
-            order.getDomainEvents().add(new OrderCreatedEvent(1L, validOrderNumber));
+            order.getDomainEvents().add(new OrderCreatedEvent(1L, validOrderNumber, validShippingAddress));
         });
     }
 } 

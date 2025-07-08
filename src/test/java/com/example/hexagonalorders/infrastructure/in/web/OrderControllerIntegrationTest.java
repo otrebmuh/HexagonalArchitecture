@@ -143,6 +143,11 @@ public class OrderControllerIntegrationTest {
         orderDto.setItems(List.of(itemDto));
         orderDto.setStatus("PENDING");
         orderDto.setOrderDate(LocalDateTime.now());
+        orderDto.setStreet("123 Main St");
+        orderDto.setCity("City");
+        orderDto.setState("State");
+        orderDto.setPostalCode("12345");
+        orderDto.setCountry("Country");
         return orderDto;
     }
 } 

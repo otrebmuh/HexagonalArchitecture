@@ -5,6 +5,7 @@ import com.example.hexagonalorders.domain.model.OrderItem;
 import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
 import com.example.hexagonalorders.domain.model.valueobject.ProductNumber;
 import com.example.hexagonalorders.domain.model.valueobject.Quantity;
+import com.example.hexagonalorders.domain.model.valueobject.ShippingAddress;
 import com.example.hexagonalorders.infrastructure.out.persistence.entity.OrderJpaEntity;
 import com.example.hexagonalorders.infrastructure.out.persistence.entity.OrderItemJpaEntity;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,15 @@ public class OrderJpaMapper {
         jpaEntity.setCustomerId(order.getCustomerId());
         jpaEntity.setOrderDate(order.getOrderDate());
         jpaEntity.setStatus(toJpaOrderStatus(order.getStatus()));
+        // Map shipping address fields
+        ShippingAddress shippingAddress = order.getShippingAddress();
+        if (shippingAddress != null) {
+            jpaEntity.setStreet(shippingAddress.getStreet());
+            jpaEntity.setCity(shippingAddress.getCity());
+            jpaEntity.setState(shippingAddress.getState());
+            jpaEntity.setPostalCode(shippingAddress.getPostalCode());
+            jpaEntity.setCountry(shippingAddress.getCountry());
+        }
         
         List<OrderItemJpaEntity> items = order.getItems().stream()
                 .map(item -> toJpaEntity(item, jpaEntity))
@@ -51,12 +61,19 @@ public class OrderJpaMapper {
         List<OrderItem> items = jpaEntity.getItems().stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
-        
+        ShippingAddress shippingAddress = new ShippingAddress(
+            jpaEntity.getStreet(),
+            jpaEntity.getCity(),
+            jpaEntity.getState(),
+            jpaEntity.getPostalCode(),
+            jpaEntity.getCountry()
+        );
         return new Order(
             new OrderNumber(jpaEntity.getOrderNumber()),
             jpaEntity.getCustomerId(),
             jpaEntity.getOrderDate(),
             items,
+            shippingAddress,
             toDomainOrderStatus(jpaEntity.getStatus())
         );
     }
