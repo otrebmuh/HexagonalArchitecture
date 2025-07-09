@@ -6,9 +6,15 @@ import com.example.hexagonalorders.domain.port.out.OrderNumberGenerator;
 import com.example.hexagonalorders.domain.port.out.OrderRepository;
 import com.example.hexagonalorders.domain.port.out.OutboxRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Configuration class for order-related beans.
@@ -45,6 +51,19 @@ public class OrderConfiguration {
     
     @Bean
     public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        // Register JavaTimeModule
+        objectMapper.registerModule(new JavaTimeModule());
+        
+        // Configure LocalDateTime serialization format
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        objectMapper.registerModule(new JavaTimeModule()
+            .addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter)));
+        
+        // Disable writing dates as timestamps
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        
+        return objectMapper;
     }
 } 
