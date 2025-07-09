@@ -5,6 +5,7 @@ import com.example.hexagonalorders.domain.model.OrderItem;
 import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
 import com.example.hexagonalorders.domain.model.valueobject.ProductNumber;
 import com.example.hexagonalorders.domain.model.valueobject.Quantity;
+import com.example.hexagonalorders.domain.model.valueobject.ShippingAddress;
 import com.example.hexagonalorders.infrastructure.out.persistence.entity.OrderJpaEntity;
 import com.example.hexagonalorders.infrastructure.out.persistence.entity.OrderItemJpaEntity;
 import org.springframework.stereotype.Component;
@@ -17,24 +18,42 @@ public class OrderJpaMapper {
     
     public OrderJpaEntity toJpaEntity(Order order) {
         OrderJpaEntity jpaEntity = new OrderJpaEntity();
-        jpaEntity.setOrderNumber(order.getOrderNumber().value());
+        
+        // Handle null orderNumber for new orders
+        if (order.getOrderNumber() != null) {
+            jpaEntity.setOrderNumber(order.getOrderNumber().value());
+        } else {
+            // For new orders, we'll set a placeholder that will be updated later
+            jpaEntity.setOrderNumber("TEMP-" + System.currentTimeMillis());
+        }
+        
         jpaEntity.setCustomerId(order.getCustomerId());
         jpaEntity.setOrderDate(order.getOrderDate());
         jpaEntity.setStatus(toJpaOrderStatus(order.getStatus()));
+        // Map shipping address fields
+        ShippingAddress shippingAddress = order.getShippingAddress();
+        if (shippingAddress != null) {
+            jpaEntity.setStreet(shippingAddress.getStreet());
+            jpaEntity.setCity(shippingAddress.getCity());
+            jpaEntity.setState(shippingAddress.getState());
+            jpaEntity.setPostalCode(shippingAddress.getPostalCode());
+            jpaEntity.setCountry(shippingAddress.getCountry());
+        }
         
         List<OrderItemJpaEntity> items = order.getItems().stream()
-                .map(this::toJpaEntity)
+                .map(item -> toJpaEntity(item, jpaEntity))
                 .collect(Collectors.toList());
         jpaEntity.setItems(items);
         
         return jpaEntity;
     }
     
-    private OrderItemJpaEntity toJpaEntity(OrderItem item) {
+    private OrderItemJpaEntity toJpaEntity(OrderItem item, OrderJpaEntity order) {
         OrderItemJpaEntity jpaEntity = new OrderItemJpaEntity();
         jpaEntity.setProductNumber(item.getProductNumber().value());
         jpaEntity.setQuantity(item.getQuantity().value());
         jpaEntity.setUnitPrice(item.getUnitPrice());
+        jpaEntity.setOrder(order); // Set the order reference
         return jpaEntity;
     }
     
@@ -42,12 +61,19 @@ public class OrderJpaMapper {
         List<OrderItem> items = jpaEntity.getItems().stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
-        
+        ShippingAddress shippingAddress = new ShippingAddress(
+            jpaEntity.getStreet(),
+            jpaEntity.getCity(),
+            jpaEntity.getState(),
+            jpaEntity.getPostalCode(),
+            jpaEntity.getCountry()
+        );
         return new Order(
             new OrderNumber(jpaEntity.getOrderNumber()),
             jpaEntity.getCustomerId(),
             jpaEntity.getOrderDate(),
             items,
+            shippingAddress,
             toDomainOrderStatus(jpaEntity.getStatus())
         );
     }

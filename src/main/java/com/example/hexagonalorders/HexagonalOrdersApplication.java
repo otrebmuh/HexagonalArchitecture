@@ -2,6 +2,7 @@ package com.example.hexagonalorders;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Main application class for the Hexagonal Orders system.
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * - Bootstrapping the Spring Boot application
  * - Enabling component scanning for the entire application
  * - Configuring the application context
+ * - Enabling scheduled tasks for outbox processing
  * 
  * The application follows Hexagonal Architecture principles with:
  * - Domain layer containing business logic and ports
@@ -16,6 +18,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * - Infrastructure layer containing adapters and external services
  */
 @SpringBootApplication
+@EnableScheduling
 public class HexagonalOrdersApplication {
     public static void main(String[] args) {
         SpringApplication.run(HexagonalOrdersApplication.class, args);
