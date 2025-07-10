@@ -31,16 +31,12 @@ public class OrderConfiguration {
             OrderRepository orderRepository,
             OrderNumberGenerator orderNumberGenerator,
             OrderValidationService orderValidationService,
-            ApplicationEventPublisher eventPublisher,
-            OutboxRepository outboxRepository,
-            ObjectMapper objectMapper) {
+            ApplicationEventPublisher eventPublisher) {
         return new OrderService(
             orderRepository, 
             orderNumberGenerator, 
             orderValidationService, 
-            eventPublisher,
-            outboxRepository,
-            objectMapper
+            eventPublisher
         );
     }
 

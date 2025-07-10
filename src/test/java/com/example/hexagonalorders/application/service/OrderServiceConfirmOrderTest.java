@@ -40,12 +40,6 @@ class OrderServiceConfirmOrderTest {
     
     @Mock
     private ApplicationEventPublisher eventPublisher;
-    
-    @Mock
-    private OutboxRepository outboxRepository;
-    
-    @Mock
-    private ObjectMapper objectMapper;
 
     private OrderService orderService;
 
@@ -58,9 +52,7 @@ class OrderServiceConfirmOrderTest {
             orderRepository,
             null, // OrderNumberGenerator not needed for this test
             orderValidationService,
-            eventPublisher,
-            outboxRepository,
-            objectMapper
+            eventPublisher
         );
 
         orderNumber = new OrderNumber("ORD-001");
@@ -86,7 +78,6 @@ class OrderServiceConfirmOrderTest {
             // The saved order should have the confirmed status and the OrderConfirmedEvent
             return savedOrder;
         });
-        when(objectMapper.writeValueAsString(any())).thenReturn("{\"orderNumber\":\"ORD-001\"}");
 
         // When
         Order result = orderService.confirmOrder(orderNumber);
@@ -98,7 +89,6 @@ class OrderServiceConfirmOrderTest {
         verify(orderRepository).findByOrderNumber(orderNumber);
         verify(orderRepository).save(any(Order.class));
         verify(eventPublisher).publishEvent(any(OrderConfirmedEvent.class));
-        verify(outboxRepository).save(any());
     }
 
     @Test
@@ -116,29 +106,5 @@ class OrderServiceConfirmOrderTest {
         verify(orderRepository).findByOrderNumber(orderNumber);
         verify(orderRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
-        verify(outboxRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldPersistIntegrationEventToOutbox() throws Exception {
-        // Given
-        when(orderRepository.findByOrderNumber(orderNumber)).thenReturn(Optional.of(pendingOrder));
-        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
-            Order savedOrder = invocation.getArgument(0);
-            return savedOrder;
-        });
-        when(objectMapper.writeValueAsString(any())).thenReturn("{\"orderNumber\":\"ORD-001\"}");
-
-        ArgumentCaptor<com.example.hexagonalorders.domain.model.OutboxMessage> outboxCaptor = 
-            ArgumentCaptor.forClass(com.example.hexagonalorders.domain.model.OutboxMessage.class);
-
-        // When
-        orderService.confirmOrder(orderNumber);
-
-        // Then
-        verify(outboxRepository).save(outboxCaptor.capture());
-        com.example.hexagonalorders.domain.model.OutboxMessage savedMessage = outboxCaptor.getValue();
-        assertEquals("OrderConfirmedIntegrationEvent", savedMessage.eventType());
-        assertEquals("Order", savedMessage.aggregateType());
     }
 } 

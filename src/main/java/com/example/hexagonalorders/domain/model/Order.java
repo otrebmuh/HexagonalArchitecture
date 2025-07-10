@@ -61,8 +61,9 @@ public class Order {
         this.items = items;
         this.shippingAddress = shippingAddress;
         this.status = status;
-        // Only add OrderCreatedEvent if orderNumber is not null (for persisted orders)
-        if (orderNumber != null) {
+        // Only add OrderCreatedEvent for NEW orders (when id is null)
+        // This prevents adding OrderCreatedEvent when reconstructing from database
+        if (id == null && orderNumber != null) {
             domainEvents.add(new OrderCreatedEvent(null, orderNumber, shippingAddress));
         }
     }
@@ -123,6 +124,7 @@ public class Order {
             throw new IllegalStateException("Order can only be confirmed if it is in PENDING status. Current status: " + this.status);
         }
         this.status = OrderStatus.CONFIRMED;
+
         domainEvents.add(new OrderConfirmedEvent(orderId, orderNumber));
     }
 

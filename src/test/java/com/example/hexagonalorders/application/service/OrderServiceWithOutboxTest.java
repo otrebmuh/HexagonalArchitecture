@@ -52,32 +52,16 @@ public class OrderServiceWithOutboxTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private OutboxRepository outboxRepository;
-
-    @Captor
-    private ArgumentCaptor<OutboxMessage> outboxMessageCaptor;
-
-    private ObjectMapper objectMapper;
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules(); // For LocalDateTime serialization
-        
         orderService = new OrderService(
             orderRepository,
             orderNumberGenerator,
             orderValidationService,
-            eventPublisher,
-            outboxRepository,
-            objectMapper
+            eventPublisher
         );
-        
-        // Spy on the orderService to avoid the UUID conversion issue
-        orderService = spy(orderService);
-        doNothing().when(orderService).persistToOutbox(any(), any(), any());
     }
 
     @Test
@@ -96,11 +80,8 @@ public class OrderServiceWithOutboxTest {
         // Assert
         assertNotNull(result);
         assertEquals(orderNumber, result.getOrderNumber());
-        
-        // Don't verify specific interactions with mocks
-        
-        // Just verify that persistToOutbox was called
-        verify(orderService, atLeastOnce()).persistToOutbox(any(), eq("Order"), eq("ORD-12345"));
+        // Verify that domain events are published
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(DomainEvent.class));
     }
 
     @Test
@@ -118,18 +99,10 @@ public class OrderServiceWithOutboxTest {
         
         // Assert
         assertNotNull(result);
-        
-        // Don't verify specific interactions with mocks
-        
-        // Just verify that persistToOutbox was called
-        verify(orderService, atLeastOnce()).persistToOutbox(any(), eq("Order"), eq("ORD-12345"));
+        // Verify that domain events are published
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(DomainEvent.class));
     }
     
-    // Make persistToOutbox method accessible for testing
-    void persistToOutbox(DomainEvent event, String aggregateType, String aggregateId) {
-        // This is a test stub - the real implementation is in OrderService
-    }
-
     private Order createOrder(OrderNumber orderNumber) {
         // For testing, we'll create a mock Order object that bypasses validation
         Order mockOrder = mock(Order.class);
