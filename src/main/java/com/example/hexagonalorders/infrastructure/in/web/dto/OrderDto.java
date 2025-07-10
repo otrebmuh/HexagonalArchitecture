@@ -27,7 +27,7 @@ public class OrderDto {
     @Schema(description = "List of order items.", required = true)
     private List<OrderItemDto> items;
 
-    @Schema(description = "Order status.", example = "CREATED", required = true)
+    @Schema(description = "Order status.", example = "PENDING", required = true)
     private String status;
 
     @Schema(description = "Street address for shipping.", example = "123 Main St", required = true)

@@ -77,12 +77,17 @@ class OrderTest {
 
     @Test
     void shouldThrowExceptionWhenOrderNumberIsNull() {
-        // When & Then
+        // Should not throw for new orders (id is null)
+        Order order = new Order(null, validCustomerId, validOrderDate, validItems, validShippingAddress, validStatus);
+        assertNotNull(order);
+        assertNull(order.getOrderNumber());
+
+        // Should throw for persisted orders (id is not null)
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> new Order(null, validCustomerId, validOrderDate, validItems, validShippingAddress, validStatus)
+            () -> new Order(1L, null, validCustomerId, validOrderDate, validItems, validShippingAddress, validStatus)
         );
-        assertEquals("Order number cannot be null", exception.getMessage());
+        assertEquals("Order number cannot be null for persisted orders", exception.getMessage());
     }
 
     @Test
@@ -232,7 +237,58 @@ class OrderTest {
 
         // When & Then
         assertThrows(UnsupportedOperationException.class, () -> {
-            order.getDomainEvents().add(new OrderCreatedEvent(1L, validOrderNumber, validShippingAddress));
+            order.getDomainEvents().add(null);
         });
+    }
+
+    @Test
+    void shouldConfirmOrderWhenInPendingStatus() {
+        // Given
+        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validShippingAddress, OrderStatus.PENDING);
+        Long orderId = 1L;
+        int initialEventCount = order.getDomainEvents().size();
+
+        // When
+        order.confirm(orderId);
+
+        // Then
+        assertEquals(OrderStatus.CONFIRMED, order.getStatus());
+        assertEquals(initialEventCount + 1, order.getDomainEvents().size());
+        
+        DomainEvent lastEvent = order.getDomainEvents().get(order.getDomainEvents().size() - 1);
+        assertTrue(lastEvent instanceof com.example.hexagonalorders.domain.event.OrderConfirmedEvent);
+        
+        com.example.hexagonalorders.domain.event.OrderConfirmedEvent confirmedEvent = 
+            (com.example.hexagonalorders.domain.event.OrderConfirmedEvent) lastEvent;
+        assertEquals(orderId, confirmedEvent.getOrderId());
+        assertEquals(validOrderNumber, confirmedEvent.getOrderNumber());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenConfirmingOrderNotInPendingStatus() {
+        // Given
+        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validShippingAddress, OrderStatus.CONFIRMED);
+        Long orderId = 1L;
+
+        // When & Then
+        IllegalStateException exception = assertThrows(
+            IllegalStateException.class,
+            () -> order.confirm(orderId)
+        );
+        assertEquals("Order can only be confirmed if it is in PENDING status. Current status: CONFIRMED", exception.getMessage());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenConfirmingOrderInCancelledStatus() {
+        // Given
+        Order order = new Order(validOrderNumber, validCustomerId, validOrderDate, validItems, validShippingAddress, OrderStatus.CANCELLED);
+        Long orderId = 1L;
+
+        // When & Then
+        IllegalStateException exception = assertThrows(
+            IllegalStateException.class,
+            () -> order.confirm(orderId)
+        );
+        assertEquals("Order can only be confirmed if it is in PENDING status. Current status: CANCELLED", exception.getMessage());
     }
 } 

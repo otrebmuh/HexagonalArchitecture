@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class OrderControllerIntegrationTest {
 
     @Autowired
@@ -130,6 +132,59 @@ public class OrderControllerIntegrationTest {
         // Verify it's gone
         mockMvc.perform(get("/api/orders/{orderNumber}", orderNumber))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void confirmOrder_WithExistingPendingOrder_ShouldReturnConfirmedOrder() throws Exception {
+        // Arrange - First create an order
+        OrderDto inputDto = createOrderDto();
+        MvcResult result = mockMvc.perform(post("/api/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(inputDto)))
+                .andReturn();
+        
+        String responseJson = result.getResponse().getContentAsString();
+        OrderDto createdOrder = objectMapper.readValue(responseJson, OrderDto.class);
+        String orderNumber = createdOrder.getOrderNumber();
+
+        // Act & Assert - Then confirm it
+        mockMvc.perform(post("/api/orders/{orderNumber}/confirm", orderNumber))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.orderNumber").value(orderNumber))
+                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+    }
+
+    @Test
+    public void confirmOrder_WithNonExistingOrder_ShouldReturnNotFound() throws Exception {
+        // Arrange
+        String orderNumber = "ORD-NONEXISTENT";
+        
+        // Act & Assert
+        mockMvc.perform(post("/api/orders/{orderNumber}/confirm", orderNumber))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void confirmOrder_WithAlreadyConfirmedOrder_ShouldReturnBadRequest() throws Exception {
+        // Arrange - First create and confirm an order
+        OrderDto inputDto = createOrderDto();
+        MvcResult result = mockMvc.perform(post("/api/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(inputDto)))
+                .andReturn();
+        
+        String responseJson = result.getResponse().getContentAsString();
+        OrderDto createdOrder = objectMapper.readValue(responseJson, OrderDto.class);
+        String orderNumber = createdOrder.getOrderNumber();
+
+        // Confirm the order first
+        mockMvc.perform(post("/api/orders/{orderNumber}/confirm", orderNumber))
+                .andExpect(status().isOk());
+
+        // Act & Assert - Try to confirm it again
+        mockMvc.perform(post("/api/orders/{orderNumber}/confirm", orderNumber))
+                .andExpect(status().isBadRequest());
     }
 
     private OrderDto createOrderDto() {

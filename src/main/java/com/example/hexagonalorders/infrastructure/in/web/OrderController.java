@@ -1,5 +1,6 @@
 package com.example.hexagonalorders.infrastructure.in.web;
 
+import com.example.hexagonalorders.application.exception.OrderNotFoundException;
 import com.example.hexagonalorders.domain.model.Order;
 import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
 import com.example.hexagonalorders.domain.port.in.OrderUseCase;
@@ -50,6 +51,24 @@ public class OrderController {
                 .map(orderMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Confirm an order", description = "Confirms an order, changing its status from PENDING to CONFIRMED.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Order confirmed successfully"),
+        @ApiResponse(responseCode = "404", description = "Order not found"),
+        @ApiResponse(responseCode = "400", description = "Order cannot be confirmed (e.g., not in PENDING status)")
+    })
+    @PostMapping("/{orderNumber}/confirm")
+    public ResponseEntity<OrderDto> confirmOrder(@PathVariable String orderNumber) {
+        try {
+            Order confirmedOrder = orderUseCase.confirmOrder(new OrderNumber(orderNumber));
+            return ResponseEntity.ok(orderMapper.toDto(confirmedOrder));
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @Operation(summary = "Delete an order by order number", description = "Deletes an order by its order number.")
