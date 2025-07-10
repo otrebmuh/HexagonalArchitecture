@@ -34,7 +34,7 @@ public class DomainEventHandler {
      */
     @EventListener
     public void handleOrderConfirmed(OrderConfirmedEvent event) {
-        log.info("🎉 DOMAIN EVENT HANDLER: Handling OrderConfirmedEvent for order: {}", event.getOrderNumber());
+        log.debug("DOMAIN EVENT HANDLER: Handling OrderConfirmedEvent for order: {}", event.getOrderNumber());
         
         try {
             // Create integration event
@@ -44,10 +44,10 @@ public class DomainEventHandler {
             // Persist to outbox for reliable delivery
             persistToOutbox(integrationEvent, "Order", event.getOrderNumber().value());
             
-            log.info("✅ DOMAIN EVENT HANDLER: Successfully created integration event for order confirmation: {}", 
+            log.debug("DOMAIN EVENT HANDLER: Successfully created integration event for order confirmation: {}", 
                      event.getOrderNumber());
         } catch (Exception e) {
-            log.error("❌ DOMAIN EVENT HANDLER: Failed to handle OrderConfirmedEvent for order: {}", 
+            log.debug("DOMAIN EVENT HANDLER: Failed to handle OrderConfirmedEvent for order: {}", 
                      event.getOrderNumber(), e);
             throw new RuntimeException("Failed to process order confirmation integration event", e);
         }
@@ -61,7 +61,7 @@ public class DomainEventHandler {
      */
     @EventListener
     public void handleGenericDomainEvent(DomainEvent event) {
-        log.info("📝 DOMAIN EVENT HANDLER: Received domain event: {} - no integration event required", 
+        log.debug("DOMAIN EVENT HANDLER: Received domain event: {} - no integration event required", 
                  event.getClass().getSimpleName());
     }
     

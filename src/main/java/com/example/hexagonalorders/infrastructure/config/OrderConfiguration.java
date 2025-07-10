@@ -5,6 +5,9 @@ import com.example.hexagonalorders.domain.service.OrderValidationService;
 import com.example.hexagonalorders.domain.port.out.OrderNumberGenerator;
 import com.example.hexagonalorders.domain.port.out.OrderRepository;
 import com.example.hexagonalorders.domain.port.out.OutboxRepository;
+import com.example.hexagonalorders.domain.port.out.MessagePublisher;
+import com.example.hexagonalorders.infrastructure.out.messaging.KafkaMessagePublisher;
+import com.example.hexagonalorders.infrastructure.out.messaging.TopicNameMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -12,6 +15,8 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -61,5 +66,15 @@ public class OrderConfiguration {
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         
         return objectMapper;
+    }
+
+    /**
+     * Configures the MessagePublisher bean to use Kafka implementation.
+     * This bean can be easily swapped for testing or different environments.
+     */
+    @Bean
+    @Primary
+    public MessagePublisher messagePublisher(KafkaTemplate<String, String> kafkaTemplate, TopicNameMapper topicNameMapper) {
+        return new KafkaMessagePublisher(kafkaTemplate, topicNameMapper);
     }
 } 
