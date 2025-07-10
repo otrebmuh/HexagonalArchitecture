@@ -18,6 +18,9 @@ public class OrderJpaMapper {
     
     public OrderJpaEntity toJpaEntity(Order order) {
         OrderJpaEntity jpaEntity = new OrderJpaEntity();
+        if (order.getId() != null) {
+            jpaEntity.setId(order.getId());
+        }
         
         // Handle null orderNumber for new orders
         if (order.getOrderNumber() != null) {
@@ -69,6 +72,7 @@ public class OrderJpaMapper {
             jpaEntity.getCountry()
         );
         return new Order(
+            jpaEntity.getId(),
             new OrderNumber(jpaEntity.getOrderNumber()),
             jpaEntity.getCustomerId(),
             jpaEntity.getOrderDate(),

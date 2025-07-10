@@ -1,6 +1,9 @@
 package com.example.hexagonalorders.application.service;
 
+import com.example.hexagonalorders.application.event.OrderConfirmedIntegrationEvent;
+import com.example.hexagonalorders.application.exception.OrderNotFoundException;
 import com.example.hexagonalorders.domain.event.DomainEvent;
+import com.example.hexagonalorders.domain.event.OrderConfirmedEvent;
 import com.example.hexagonalorders.domain.model.Order;
 import com.example.hexagonalorders.domain.model.OutboxMessage;
 import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
@@ -78,6 +81,40 @@ public class OrderService implements OrderUseCase {
 
     @Override
     @Transactional
+    public Order confirmOrder(OrderNumber orderNumber) {
+        Optional<Order> orderOpt = orderRepository.findByOrderNumber(orderNumber);
+        if (orderOpt.isEmpty()) {
+            throw new OrderNotFoundException(orderNumber);
+        }
+        
+        Order order = orderOpt.get();
+        
+        // Confirm the order (this will raise the OrderConfirmedEvent)
+        order.confirm(order.getId());
+        
+        // Save the updated order
+        Order savedOrder = orderRepository.save(order);
+        
+        // Process domain events - publish internally and persist to outbox
+        for (DomainEvent event : savedOrder.getDomainEvents()) {
+            // Publish internally via Spring's event system
+            eventPublisher.publishEvent(event);
+            
+            // Map domain event to integration event and persist to outbox
+            if (event instanceof OrderConfirmedEvent) {
+                OrderConfirmedIntegrationEvent integrationEvent = 
+                    new OrderConfirmedIntegrationEvent(orderNumber);
+                persistToOutbox(integrationEvent, "Order", orderNumber.value());
+            }
+        }
+        
+        savedOrder.clearDomainEvents();
+        
+        return savedOrder;
+    }
+
+    @Override
+    @Transactional
     public void deleteOrder(OrderNumber orderNumber) {
         orderRepository.deleteByOrderNumber(orderNumber);
     }
@@ -90,6 +127,35 @@ public class OrderService implements OrderUseCase {
      * @param aggregateId the identifier of the aggregate
      */
     protected void persistToOutbox(DomainEvent event, String aggregateType, String aggregateId) {
+        try {
+            String payload = objectMapper.writeValueAsString(event);
+            String eventType = event.getClass().getSimpleName();
+            
+            // Generate a deterministic UUID based on the aggregateId string
+            // This ensures the same aggregate always gets the same UUID
+            UUID uuid = UUID.nameUUIDFromBytes(aggregateId.getBytes());
+            
+            OutboxMessage outboxMessage = OutboxMessage.createPendingMessage(
+                aggregateType,
+                uuid,
+                eventType,
+                payload
+            );
+            
+            outboxRepository.save(outboxMessage);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to persist event to outbox", e);
+        }
+    }
+    
+    /**
+     * Persists an integration event to the outbox.
+     * 
+     * @param event the integration event
+     * @param aggregateType the type of aggregate that produced the event
+     * @param aggregateId the identifier of the aggregate
+     */
+    protected void persistToOutbox(Object event, String aggregateType, String aggregateId) {
         try {
             String payload = objectMapper.writeValueAsString(event);
             String eventType = event.getClass().getSimpleName();

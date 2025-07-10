@@ -2,6 +2,7 @@ package com.example.hexagonalorders.domain.model;
 
 import com.example.hexagonalorders.domain.event.DomainEvent;
 import com.example.hexagonalorders.domain.event.OrderCreatedEvent;
+import com.example.hexagonalorders.domain.event.OrderConfirmedEvent;
 import com.example.hexagonalorders.domain.event.OrderItemAddedEvent;
 import com.example.hexagonalorders.domain.model.valueobject.OrderNumber;
 import com.example.hexagonalorders.domain.model.valueobject.ShippingAddress;
@@ -24,17 +25,19 @@ import java.util.List;
  * - A list of domain events
  */
 public class Order {
+    private final Long id;
     private final OrderNumber orderNumber;
     private final String customerId;
     private final LocalDateTime orderDate;
     private final List<OrderItem> items;
     private final ShippingAddress shippingAddress;
-    private final OrderStatus status;
+    private OrderStatus status;
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
-    public Order(OrderNumber orderNumber, String customerId, LocalDateTime orderDate, List<OrderItem> items, ShippingAddress shippingAddress, OrderStatus status) {
-        if (orderNumber == null) {
-            throw new IllegalArgumentException("Order number cannot be null");
+    public Order(Long id, OrderNumber orderNumber, String customerId, LocalDateTime orderDate, List<OrderItem> items, ShippingAddress shippingAddress, OrderStatus status) {
+        // Allow null orderNumber for new orders (when id is null), but require it for persisted orders
+        if (id != null && orderNumber == null) {
+            throw new IllegalArgumentException("Order number cannot be null for persisted orders");
         }
         if (customerId == null || customerId.trim().isEmpty()) {
             throw new IllegalArgumentException("Customer ID cannot be null or empty");
@@ -51,38 +54,29 @@ public class Order {
         if (shippingAddress == null) {
             throw new IllegalArgumentException("Shipping address cannot be null");
         }
+        this.id = id;
         this.orderNumber = orderNumber;
         this.customerId = customerId;
         this.orderDate = orderDate;
         this.items = items;
         this.shippingAddress = shippingAddress;
         this.status = status;
-        domainEvents.add(new OrderCreatedEvent(null, orderNumber, shippingAddress));
+        // Only add OrderCreatedEvent if orderNumber is not null (for persisted orders)
+        if (orderNumber != null) {
+            domainEvents.add(new OrderCreatedEvent(null, orderNumber, shippingAddress));
+        }
+    }
+
+    public Order(OrderNumber orderNumber, String customerId, LocalDateTime orderDate, List<OrderItem> items, ShippingAddress shippingAddress, OrderStatus status) {
+        this(null, orderNumber, customerId, orderDate, items, shippingAddress, status);
     }
 
     public Order(String customerId, LocalDateTime orderDate, List<OrderItem> items, ShippingAddress shippingAddress, OrderStatus status) {
-        if (customerId == null || customerId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Customer ID cannot be null or empty");
-        }
-        if (orderDate == null) {
-            throw new IllegalArgumentException("Order date cannot be null");
-        }
-        if (items == null) {
-            throw new IllegalArgumentException("Items cannot be null");
-        }
-        if (status == null) {
-            throw new IllegalArgumentException("Status cannot be null");
-        }
-        if (shippingAddress == null) {
-            throw new IllegalArgumentException("Shipping address cannot be null");
-        }
-        this.orderNumber = null;
-        this.customerId = customerId;
-        this.orderDate = orderDate;
-        this.items = items;
-        this.shippingAddress = shippingAddress;
-        this.status = status;
-        // No domain event here
+        this(null, null, customerId, orderDate, items, shippingAddress, status);
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public OrderNumber getOrderNumber() {
@@ -115,6 +109,21 @@ public class Order {
 
     public void clearDomainEvents() {
         domainEvents.clear();
+    }
+
+    /**
+     * Confirms the order, changing its status from PENDING to CONFIRMED.
+     * Raises an OrderConfirmedEvent.
+     * 
+     * @param orderId the database ID of the order
+     * @throws IllegalStateException if the order is not in PENDING status
+     */
+    public void confirm(Long orderId) {
+        if (this.status != OrderStatus.PENDING) {
+            throw new IllegalStateException("Order can only be confirmed if it is in PENDING status. Current status: " + this.status);
+        }
+        this.status = OrderStatus.CONFIRMED;
+        domainEvents.add(new OrderConfirmedEvent(orderId, orderNumber));
     }
 
     /**

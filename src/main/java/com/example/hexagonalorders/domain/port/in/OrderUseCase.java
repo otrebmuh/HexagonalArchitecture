@@ -33,6 +33,13 @@ public interface OrderUseCase {
     List<Order> getAllOrders();
 
     /**
+     * Confirms an order, changing its status from PENDING to CONFIRMED
+     * @param orderNumber the order number
+     * @return the confirmed order
+     */
+    Order confirmOrder(OrderNumber orderNumber);
+
+    /**
      * Deletes an order by its order number
      * @param orderNumber the order number
      */
