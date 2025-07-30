@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hexagonalorders
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hexagonalorders
+  template:
+    metadata:
+      labels:
+        app: hexagonalorders
+    spec:
+      containers:
+        - name: hexagonalorders
+          image: hexagonalorders:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "default"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "redpanda:9092" 
